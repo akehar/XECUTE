@@ -82,13 +82,23 @@ def parse_text(
     today: date | None = None,
     llm_client: LLMClient | None = None,
     min_confidence: float | None = None,
+    default_expiry_today: bool | None = None,
 ) -> ParseResult:
-    """Run the full parse pipeline. Threshold defaults to settings.parse_min_confidence."""
+    """Run the full parse pipeline. Threshold defaults to settings.parse_min_confidence.
+
+    default_expiry_today=True treats messages with no expiry token as 0DTE — the
+    convention used by the signal channel we're following. None reads the setting.
+    """
     if min_confidence is None:
         try:
             min_confidence = get_settings().parse_min_confidence
         except Exception:
             min_confidence = 0.85
+    if default_expiry_today is None:
+        try:
+            default_expiry_today = get_settings().parser_default_expiry_today
+        except Exception:
+            default_expiry_today = False
 
     raw = text.strip() if text else ""
     if not raw:
@@ -103,7 +113,9 @@ def parse_text(
             multileg=True,
         )
 
-    regex_result = parse_text_regex(raw, source=source, today=today)
+    regex_result = parse_text_regex(
+        raw, source=source, today=today, default_expiry_today=default_expiry_today
+    )
     if regex_result.signal is not None and regex_result.confidence >= min_confidence:
         return regex_result
 

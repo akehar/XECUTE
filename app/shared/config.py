@@ -45,8 +45,19 @@ class Settings(BaseSettings):
     uw_base_url: str = "https://api.unusualwhales.com"
     flow_fail_mode: str = "inconclusive_passes"  # inconclusive_passes | fail_closed
 
+    # Polygon.io (news + market data + option chains)
+    polygon_api_key: str = ""
+    polygon_base_url: str = "https://api.polygon.io"
+    news_poll_interval_seconds: int = 60
+
+    # LLM-suggest scanner strategy (Claude Haiku 4.5 picks ATM strikes from watchlist
+    # given current market state + news + flow). Auto-executes via the same pipeline.
+    llm_suggest_enabled: bool = True
+    llm_suggest_interval_minutes: int = 15
+
     # Parser
     parse_min_confidence: float = 0.85
+    parser_default_expiry_today: bool = True  # channel convention: missing expiry = 0DTE
 
     # Risk (defaults sized for ~$290 USD account; tune in .env as account grows)
     trading_hours_start: str = "09:35"
@@ -58,6 +69,9 @@ class Settings(BaseSettings):
     orders_per_hour: int = 20
     slippage_tolerance: float = 0.02
     duplicate_window_seconds: int = 60
+    # Hard global cap across ALL sources (scanner + paste + LLM-suggest). When hit,
+    # no more orders fire until the next trading day.
+    daily_total_trade_cap: int = 3
 
     # Scanner
     scanner_enabled: bool = True

@@ -198,6 +198,7 @@ def parse_text_regex(
     *,
     source: SignalSource = SignalSource.DISCORD,
     today: date | None = None,
+    default_expiry_today: bool = False,
 ) -> ParseResult:
     """Run the regex pipeline. Returns a ParseResult; missing fields mean the LLM must try."""
     raw = text.strip()
@@ -257,13 +258,18 @@ def parse_text_regex(
             field_confidence=field_conf,
         )
     if expiry is None:
-        # No expiry guess available; let LLM try.
-        return ParseResult(
-            source="rejected",
-            reason="expiry not found",
-            raw_text=raw,
-            field_confidence=field_conf,
-        )
+        # Some channels use the convention "no expiry stated = 0DTE". When the caller
+        # sets default_expiry_today, fall back to today rather than reject.
+        if default_expiry_today:
+            expiry = today or date.today()
+            field_conf["expiry"] = 0.9
+        else:
+            return ParseResult(
+                source="rejected",
+                reason="expiry not found",
+                raw_text=raw,
+                field_confidence=field_conf,
+            )
 
     # Default to BTO if action absent but everything else is present (slightly lower confidence).
     if action is None:
