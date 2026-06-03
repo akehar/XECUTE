@@ -118,7 +118,6 @@ class OrderResult(BaseModel):
     submitted_at: datetime | None = None
     filled_at: datetime | None = None
     error: str | None = None
-    shadow_of: str | None = None  # if this is a paper-shadow of a live order, references live order id
 
     @property
     def is_filled(self) -> bool:
@@ -136,7 +135,6 @@ class ModeState(BaseModel):
     mode: Mode = Mode.PAPER
     updated_at: datetime = Field(default_factory=_utcnow)
     confirmation_phrase_ok: bool = False
-    shadow_enabled: bool = False  # whether shadow side is requested (active only when mode=LIVE_WITH_SHADOW)
 
 
 class PipelineOutcome(BaseModel):
@@ -147,5 +145,4 @@ class PipelineOutcome(BaseModel):
     analysis: AnalysisReport | None = None
     risk: RiskDecision | None = None
     order: OrderResult | None = None
-    shadow_order: OrderResult | None = None
     message: str = ""

@@ -2,9 +2,12 @@ from enum import Enum
 
 
 class Mode(str, Enum):
+    # Paper is retained as a dev/test target you can point the executor at to validate
+    # parser/analysis/scanner wiring without real fills. Live is the production runtime.
+    # Shadow mode was dropped (it required a separate paper account and didn't pull weight
+    # for a single-account live deployment).
     PAPER = "PAPER"
     LIVE = "LIVE"
-    LIVE_WITH_SHADOW = "LIVE_WITH_SHADOW"
 
 
 class SignalSource(str, Enum):

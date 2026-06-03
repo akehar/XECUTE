@@ -141,7 +141,12 @@ class TestConfig:
         s = Settings(_env_file=None)
         assert s.live_trading_enabled is False
         assert s.parse_min_confidence == 0.85
-        assert s.daily_loss_limit == -500.0
+        # Defaults sized for the ~$290 USD starting account.
+        assert s.daily_loss_limit == -150.0
+        assert s.per_trade_dollar_cap == 100.0
+        assert s.max_concurrent_positions == 2
+        assert s.hard_contract_cap == 3
+        assert s.scanner_daily_trade_cap == 1
         assert s.flow_fail_mode == "inconclusive_passes"
 
     def test_watchlist_parsed(self, monkeypatch, tmp_path: Path):
@@ -188,9 +193,10 @@ class TestDB:
             "scanner_state",
             "config_overrides",
             "logs",
-            "shadow_pairs",
         }
         assert expected.issubset(table_names), f"missing: {expected - table_names}"
+        # Shadow plumbing was dropped when we collapsed to a single-account live deployment.
+        assert "shadow_pairs" not in table_names
 
     def test_init_db_idempotent(self, tmp_path: Path):
         db_path = tmp_path / "test.db"
@@ -204,9 +210,8 @@ class TestDB:
         db_path = tmp_path / "test.db"
         init_db(db_path)
         with sqlite3.connect(db_path) as conn:
-            row = conn.execute("SELECT mode, shadow_enabled FROM mode_state WHERE id=1").fetchone()
+            row = conn.execute("SELECT mode FROM mode_state WHERE id=1").fetchone()
         assert row[0] == "PAPER"
-        assert row[1] == 0
 
     def test_kill_switch_default_off(self, tmp_path: Path):
         db_path = tmp_path / "test.db"
@@ -222,4 +227,5 @@ class TestEnumsRoundTrip:
         assert SignalStatus.REJECTED_BY_RISK.value == "rejected_by_risk"
 
     def test_mode_values(self):
-        assert Mode.LIVE_WITH_SHADOW.value == "LIVE_WITH_SHADOW"
+        # Only PAPER and LIVE; shadow mode dropped.
+        assert {m.value for m in Mode} == {"PAPER", "LIVE"}

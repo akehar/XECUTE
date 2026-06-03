@@ -82,9 +82,7 @@ CREATE TABLE IF NOT EXISTS orders (
     submitted_at    TEXT,
     filled_at       TEXT,
     error           TEXT,
-    shadow_of       INTEGER,                        -- references orders.id when shadow paper-mirror of a live order
-    FOREIGN KEY(signal_id) REFERENCES signals(id),
-    FOREIGN KEY(shadow_of) REFERENCES orders(id)
+    FOREIGN KEY(signal_id) REFERENCES signals(id)
 );
 CREATE INDEX IF NOT EXISTS idx_orders_signal ON orders(signal_id);
 CREATE INDEX IF NOT EXISTS idx_orders_mode ON orders(mode, submitted_at DESC);
@@ -113,11 +111,10 @@ CREATE TABLE IF NOT EXISTS mode_state (
     id                      INTEGER PRIMARY KEY CHECK (id = 1),
     mode                    TEXT NOT NULL DEFAULT 'PAPER',
     confirmation_phrase_ok  INTEGER NOT NULL DEFAULT 0,
-    shadow_enabled          INTEGER NOT NULL DEFAULT 0,
     updated_at              TEXT NOT NULL
 );
-INSERT OR IGNORE INTO mode_state (id, mode, confirmation_phrase_ok, shadow_enabled, updated_at)
-VALUES (1, 'PAPER', 0, 0, datetime('now'));
+INSERT OR IGNORE INTO mode_state (id, mode, confirmation_phrase_ok, updated_at)
+VALUES (1, 'PAPER', 0, datetime('now'));
 
 CREATE TABLE IF NOT EXISTS kill_switch (
     id          INTEGER PRIMARY KEY CHECK (id = 1),
@@ -155,15 +152,6 @@ CREATE TABLE IF NOT EXISTS logs (
 CREATE INDEX IF NOT EXISTS idx_logs_ts ON logs(ts DESC);
 CREATE INDEX IF NOT EXISTS idx_logs_module ON logs(module, ts DESC);
 
-CREATE TABLE IF NOT EXISTS shadow_pairs (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    live_order_id   INTEGER NOT NULL,
-    paper_order_id  INTEGER NOT NULL,
-    created_at      TEXT NOT NULL,
-    FOREIGN KEY(live_order_id) REFERENCES orders(id),
-    FOREIGN KEY(paper_order_id) REFERENCES orders(id)
-);
-CREATE INDEX IF NOT EXISTS idx_shadow_pairs_live ON shadow_pairs(live_order_id);
 """
 
 

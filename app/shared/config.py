@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # Mode locks
     live_trading_enabled: bool = False
 
+    # Account / capital
+    account_base_currency: str = "CAD"
+    starting_budget_usd: float = 290.0
+
     # IBKR
     ibkr_paper_host: str = "127.0.0.1"
     ibkr_paper_port: int = 4002
@@ -44,13 +48,13 @@ class Settings(BaseSettings):
     # Parser
     parse_min_confidence: float = 0.85
 
-    # Risk
+    # Risk (defaults sized for ~$290 USD account; tune in .env as account grows)
     trading_hours_start: str = "09:35"
     trading_hours_end: str = "15:55"
-    daily_loss_limit: float = -500.0
-    max_concurrent_positions: int = 5
-    per_trade_dollar_cap: float = 500.0
-    hard_contract_cap: int = 10
+    daily_loss_limit: float = -150.0
+    max_concurrent_positions: int = 2
+    per_trade_dollar_cap: float = 100.0
+    hard_contract_cap: int = 3
     orders_per_hour: int = 20
     slippage_tolerance: float = 0.02
     duplicate_window_seconds: int = 60
@@ -58,7 +62,7 @@ class Settings(BaseSettings):
     # Scanner
     scanner_enabled: bool = True
     scanner_watchlist: str = "SPY,QQQ,AAPL,TSLA,NVDA,AMD,MSFT,META,AMZN,GOOGL"
-    scanner_daily_trade_cap: int | None = None
+    scanner_daily_trade_cap: int | None = 1
 
     # Pre-trade analysis toggles (defaults all ON; live toggles also live in config_overrides table)
     check_trend: bool = True
