@@ -4,12 +4,22 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+import pytest
+
 from app.parser.llm import FunctionLLMClient, extract_json
 from app.parser.parser import parse_text
+from app.shared import clock
 from app.shared.enums import OptionRight, SignalAction
 
 
 TODAY = date(2026, 5, 22)
+
+
+@pytest.fixture(autouse=True)
+def _freeze_clock(monkeypatch):
+    # These tests use fixed dates; pin the Signal expiry validator's clock to
+    # match so they don't rot as real time passes.
+    monkeypatch.setattr(clock, "today_et", lambda: TODAY)
 
 
 def _fake_llm(payload: dict[str, Any]):

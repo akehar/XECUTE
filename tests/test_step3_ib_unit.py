@@ -94,9 +94,9 @@ class TestContracts:
         assert c.right == "P"
 
     def test_format_contract_key(self):
-        s = _signal(ticker="NVDA", strike=500.0, right=OptionRight.PUT,
-                    expiry=date(2026, 7, 17))
-        assert format_contract_key(s) == "NVDA_20260717_500P"
+        exp = date.today() + timedelta(days=30)
+        s = _signal(ticker="NVDA", strike=500.0, right=OptionRight.PUT, expiry=exp)
+        assert format_contract_key(s) == f"NVDA_{exp.strftime('%Y%m%d')}_500P"
 
 
 # ----------- IBConnection lifecycle -----------

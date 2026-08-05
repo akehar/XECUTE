@@ -147,6 +147,35 @@ class TestEngineFlowFailMode:
         assert "fail_closed" in flow_check.reason
         assert not report.overall_pass
 
+    def test_inconclusive_flowdata_fails_under_fail_closed(self):
+        # The UW client's degradation paths return FlowData(inconclusive=True),
+        # never None. fail_closed must catch that shape too.
+        from app.shared.enums import FlowVerdict
+        from app.shared.models import FlowData
+
+        inconclusive = FlowData(
+            ticker="SPY", window_minutes=30,
+            verdict=FlowVerdict.INCONCLUSIVE, inconclusive=True,
+        )
+        report = run_analysis(_signal(), _inputs(flow=inconclusive),
+                              flow_fail_mode="fail_closed")
+        flow_check = [c for c in report.checks if c.name == "flow"][0]
+        assert not flow_check.passed
+        assert not report.overall_pass
+
+    def test_inconclusive_flowdata_passes_under_default(self):
+        from app.shared.enums import FlowVerdict
+        from app.shared.models import FlowData
+
+        inconclusive = FlowData(
+            ticker="SPY", window_minutes=30,
+            verdict=FlowVerdict.INCONCLUSIVE, inconclusive=True,
+        )
+        report = run_analysis(_signal(), _inputs(flow=inconclusive),
+                              flow_fail_mode="inconclusive_passes")
+        flow_check = [c for c in report.checks if c.name == "flow"][0]
+        assert flow_check.passed
+
 
 class TestEngineReportShape:
     def test_indicators_snapshot_includes_bar_counts_and_quote(self):

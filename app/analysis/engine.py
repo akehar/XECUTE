@@ -53,11 +53,18 @@ def run_analysis(
         checks.append(check_liquidity(signal, inputs.option_liquidity, cfg))
     if cfg.check_flow:
         flow_check = check_flow(signal, inputs.flow, cfg)
-        # Apply the fail-mode policy when flow is missing/inconclusive.
-        if inputs.flow is None and flow_fail_mode == "fail_closed":
+        # Apply the fail-mode policy when flow is missing/inconclusive. The UW
+        # client never returns None — its failure paths return a FlowData with
+        # inconclusive=True — so fail_closed must cover both shapes.
+        flow_missing = (
+            inputs.flow is None
+            or inputs.flow.inconclusive
+            or inputs.flow.verdict == FlowVerdict.INCONCLUSIVE
+        )
+        if flow_missing and flow_fail_mode == "fail_closed":
             flow_check = CheckResult(
                 name="flow", passed=False,
-                reason="no flow data and flow_fail_mode=fail_closed",
+                reason="flow data missing/inconclusive and flow_fail_mode=fail_closed",
                 value=None,
             )
         checks.append(flow_check)

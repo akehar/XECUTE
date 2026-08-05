@@ -65,7 +65,9 @@ class Signal(BaseModel):
     @field_validator("expiry")
     @classmethod
     def _expiry_within_window(cls, v: date) -> date:
-        delta = (v - date.today()).days
+        from app.shared import clock
+
+        delta = (v - clock.today_et()).days
         if delta < 0:
             raise ValueError("expiry must not be in the past")
         if delta > 60:
